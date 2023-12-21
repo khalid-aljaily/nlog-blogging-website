@@ -13,7 +13,7 @@ li{
 list-style: disc !important;
 }
 .tiptap{
-  border: solid 1px #6EEB83 !important;
+  border: solid 1px #6EEB83 ;
   outline: none !important;
   min-height: 200px;
   padding: 20px;

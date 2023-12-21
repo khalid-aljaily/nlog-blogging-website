@@ -7,7 +7,7 @@ import { Badge } from './ui/badge';
 import Editor from './Editor'
 import 'draft-js/dist/Draft.css';
 import parce from 'html-react-parser'
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { auth, db } from '@/config/firebase';
 
 import { useEditor } from '@tiptap/react';
@@ -32,41 +32,25 @@ function Post() {
     ],
 
   });
+
   const location = useLocation();
-  const [content,setContent] = useState('')
   const [title,setTitle] = useState('')
   const [tag, setTag] = useState('');
   const [tags, setTags] = useState(['tag1', 'tag2']);
   const [isError,setIsError] = useState({
-    title:'',
-    content:'',
+    title:''
   })
-  const validate = () => {
-    if(title===''){
-      setIsError((prevError) => ({
-        ...prevError,
-        title: 'Title is required',
-      }))
-    }
-   if(editor?.getText().length==0){
-    setIsError((prevError) => {
-      return {
-        ...prevError,
-        content: 'Content is required',
-      }
-    })
-   }
-  }
+  
+
+  // to remove the error state from the content feild
   useEffect(()=>{
-    console.log('50')
+    if(document.querySelector('.tiptap')?.classList.contains('!border-destructive')){
+     document.querySelector('.tiptap')?.classList.remove('!border-destructive')
+    }
   },[editor?.getText().length])
 
-  const getUserName = async () =>{
-    const uid =  auth?.currentUser?.uid
-    const products =  await getDoc(doc(collection(db, `users`),uid))
-    return products.data()?.name
 
-  }
+  
   function getFormattedDate() {
     const currentDate = new Date();
   
@@ -87,17 +71,44 @@ function Post() {
     };
   }
 
-const post =   {
-  date: getFormattedDate(),
-  title,
-  tags,
-  author: getUserName(),
-  content: document.querySelector('.tiptap')?.innerHTML,
-  likes: [],
-  comments: [
-  ],
+  const validate = async () => {
+    if(title===''){
+      setIsError((prevError) => ({
+        ...prevError,
+        title: 'Title is required',
+      }))
+    }
+   if(editor?.getText().length==0){
+   document.querySelector('.tiptap')?.classList.add('!border-destructive') 
+   }
+  else {
+     const post =   {
+    date: getFormattedDate(),
+    title,
+    tags,
+    author: {name:await getUserName(),id:auth.currentUser?.uid},
+    content: document.querySelector('.tiptap')?.innerHTML,
+    likes: [],
+    comments: [
+    ],
+  }
+  console.log(post)
+await addDoc(collection(db, 'blogs'), post).then(() => {
+  setTitle('');
+  setTags([]);
+})
 }
 
+  }
+
+
+  
+  const getUserName = async () =>{
+    const uid =  auth?.currentUser?.uid
+    const products =  await getDoc(doc(collection(db, `users`),uid))
+    return products.data()?.name
+
+  }
 
 
 
@@ -108,7 +119,7 @@ const post =   {
       </h2>
      {/* <Textarea className='rounded-none !outline-none font-light' placeholder='write your mind'/> */}
      
-     <Input className='mb-3 text-center' placeholder='Title' value={title} onChange={(e)=>{setTitle(e.target.value)}}/>
+     <Input className={`mb-3 text-center ${isError.title&&'border-destructive'}`} placeholder='Title' value={title} onChange={(e)=>{setIsError({title:''});setTitle(e.target.value)}}/>
     <Editor editor = {editor}/>
       <div className="flex flex-col gap-3 mt-3">
         <div className="flex flex-wrap gap-5">
@@ -148,7 +159,7 @@ const post =   {
           <Button className="mt-2 flex-1" onClick={validate} >Post</Button>
         </div>
       </div>
-      <div className='target'  >{parce(`${content}`) }</div>
+      
     </div>
   );
 }

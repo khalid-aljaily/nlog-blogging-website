@@ -1,16 +1,30 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import Blog from './Blog'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { blogGroup } from '@/assets/content'
 import { icons } from '@/assets/content'
 import { db } from '@/config/firebase'
-import { getDocs, collection, setDoc, doc ,addDoc,deleteDoc ,getDoc,updateDoc } from 'firebase/firestore'
+import { getDocs, collection, setDoc, doc ,addDoc,deleteDoc ,getDoc,updateDoc, onSnapshot } from 'firebase/firestore'
 function Blogs() {
     const location = useLocation()
     console.log(location.pathname.slice(1))
+    const navigate = useNavigate()
     const [blogs,setBlogs] = useState<any[]>([])
-   useEffect(()=>{
+
+
+    useEffect(() => {
+      const unsubscribe = onSnapshot(collection(db, 'blogs'), (snapshot) => {
+        const updatedBlogs = snapshot.docs.map((doc) => {return{...doc.data(),id:doc.id}});
+        setBlogs(updatedBlogs);
+        console.log(updatedBlogs)
+      });
+  
+      return () => {
+        unsubscribe();
+      };
+    }, []);
+  //  useEffect(()=>{
     // const crea = async () => {
     //   const myColl =  collection(db, 'blogs')
     //   blogGroup.forEach((blog,index)=>{
@@ -23,19 +37,19 @@ function Blogs() {
     // }
     // crea()
 
-    const getBlogs = async () =>{
+  //   const getBlogs = async () =>{
      
-        const products =  (await getDocs(collection(db, 'blogs')))
-        const filteredData = products.docs.map((doc) => ({
-          ...(doc.data()),
-          id: doc.id,
-        }))
-        console.log(filteredData)
-        setBlogs(filteredData)
+  //       const blogs =  (await getDocs(collection(db, 'blogs')))
+  //       const filteredData = blogs.docs.map((doc) => ({
+  //         ...(doc.data()),
+  //         id: doc.id,
+  //       }))
+  //       console.log(filteredData)
+  //       setBlogs(filteredData)
 
-    }
-    getBlogs()
-   },[])
+  //   }
+  //   getBlogs()
+  //  },[])
   return (
 <div className='flex flex-col lg:flex-row-reverse '>
   <main className='flex-1 px-10 p-20 lg:p-24 flex flex-col gap-10 overflow-y-scroll h-screen'>
@@ -60,9 +74,11 @@ function Blogs() {
         <p className='text-white text-xs font-light hidden lg:block'>Trending</p>
       </Button>
     </div>
-    <Button className='bg-transparent hover:bg-transparent flex-col p-0 hidden lg:flex'>
+    <Button className='bg-transparent hover:bg-transparent flex-col p-0 hidden lg:flex'
+    onClick={()=>{navigate('/post')}}
+    >
       {icons.add}
-      <p className='text-white text-xs font-light hidden lg:block'>Add</p>
+      <p className='text-white text-xs font-light hidden lg:block' >Add</p>
     </Button>
   </aside>
 </div>

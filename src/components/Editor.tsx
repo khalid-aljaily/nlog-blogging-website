@@ -15,7 +15,7 @@ export default function Editor({editor}) {
 
   return (
     <RichTextEditor editor={editor} className='list-disc' >
-      <RichTextEditor.Toolbar sticky stickyOffset={60} className='flex gap-x-7 gap-y-1 flex-wrap border-primary border py-2 items-center mb-2 justify-between px-5 relative '>
+      <RichTextEditor.Toolbar sticky stickyOffset={60} className='flex gap-x-7 gap-y-1 flex-wrap border-primary/30 border py-2 items-center mb-2 justify-between px-5 relative '>
        
       <RichTextEditor.ControlsGroup className='space-x-1 '>
 
