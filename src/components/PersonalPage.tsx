@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button'
 import Blog from './Blog'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { blogGroup } from '@/assets/content'
 import { icons } from '@/assets/content'
 import { auth, db } from '@/config/firebase'
-import { getDocs, collection, setDoc, doc ,addDoc,deleteDoc ,getDoc,updateDoc, onSnapshot } from 'firebase/firestore'
+import { collection, onSnapshot } from 'firebase/firestore'
 import { getUserName } from './BlogPage'
-function Blogs() {
+function PersonalPage() {
     const location = useLocation()
     const navigate = useNavigate()
     const [blogs,setBlogs] = useState<any[]>([])
@@ -20,11 +19,8 @@ function Blogs() {
     useEffect(() => {
      
       const unsubscribe = onSnapshot(collection(db, 'blogs'), (snapshot) => {
-        let updatedBlogs = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })).reverse();
-        if (location.pathname === '/trending') {
-          updatedBlogs = updatedBlogs.sort((a: any, b:any) => (b.likes.length || 0) - (a.likes.length || 0));
-          console.log(location.pathname)
-        }
+        const updatedBlogs = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })).filter((blog:any) => blog.author.id === auth.currentUser?.uid)
+        
         setBlogs(updatedBlogs);
       });
     
@@ -61,8 +57,9 @@ function Blogs() {
   return (
 <div className='flex flex-col lg:flex-row-reverse '>
   <main className='flex-1 px-10 p-20 lg:p-24 flex flex-col gap-10 overflow-y-scroll h-screen'>
-    <h2 className=' relative w-fit text-xl pt-2 mb-20 lg:mb-16 mx-auto lg:mx-[unset] content-none after:absolute after:top-0 after:bg-primary after:w-5 after:h-1 after:left-1/2 after:-translate-x-1/2'>{location.pathname.length>2?location.pathname.slice(1):'Latest'}
+    <h2 className=' relative w-fit text-xl pt-2 mb-20 lg:mb-16 mx-auto lg:mx-[unset] content-none after:absolute after:top-0 after:bg-primary after:w-5 after:h-1 after:left-1/2 after:-translate-x-1/2'>your posts
     </h2>
+    
     {blogs?.map((blog,index)=><Blog key={index} blog={blog}/>)}
     
   </main>
@@ -97,4 +94,4 @@ function Blogs() {
   )
 }
 
-export default Blogs
+export default PersonalPage

@@ -1,4 +1,3 @@
-import React, {  } from "react";
 import {} from 'firebase/app'
 import LogIn from "./components/LogIn";
 import SignUp from "./components/SignUp";
@@ -7,8 +6,13 @@ import Blogs from "./components/Blogs";
 import BlogPage from "./components/BlogPage";
 import Post from "./components/Post";
 import { MantineProvider } from "@mantine/core";
+import SearchPage from "./components/SearchPage";
+import PersonalPage from "./components/PersonalPage";
 
-const App: React.FC = () => {
+
+const App = () => {
+ 
+    
  
 
   return (
@@ -22,8 +26,11 @@ const App: React.FC = () => {
         <Route path="/trending" element={<Blogs/>}/>
         <Route path="/login" element={<LogIn/>}/>
         <Route path="/signup" element={<SignUp/>}/>
+        <Route path="/search" element={<SearchPage/>}/>
+        <Route path="/yourPosts" element={<PersonalPage/>}/>
        </Routes>
     </div>
+
     </MantineProvider>
   );
 };

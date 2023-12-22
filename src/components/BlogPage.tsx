@@ -20,15 +20,18 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "@/config/firebase";
 
-const getUserName = async () => {
-  const uid = auth?.currentUser?.uid;
-  const userName = await getDoc(doc(collection(db, `users`), uid));
+export const getUserName = async () => {
+  const uid =  auth?.currentUser?.uid;
+  const userName = await getDoc(doc(collection(db, 'users'), uid as string));
   return userName.data()?.name;
 };
+
+
 function BlogPage() {
   const params = useParams();
   const [comment, setComment] = useState("");
   const [current, setCurrent] = useState("");
+
   //
   const [state, setState] = useState<any>(null);
   const blogId = params.blogId as string;
