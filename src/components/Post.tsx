@@ -1,13 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {  useLocation } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
+import {  useLocation, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import Editor from './Editor'
 import 'draft-js/dist/Draft.css';
-import parce from 'html-react-parser'
-import { addDoc, collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/config/firebase';
 
 import { useEditor } from '@tiptap/react';
@@ -18,6 +17,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Superscript from '@tiptap/extension-superscript';
 import SubScript from '@tiptap/extension-subscript';
 import { Link } from '@mantine/tiptap';
+import { UserContext } from '@/App';
 function Post() {
   
   const editor = useEditor({
@@ -36,11 +36,12 @@ function Post() {
   const location = useLocation();
   const [title,setTitle] = useState('')
   const [tag, setTag] = useState('');
-  const [tags, setTags] = useState(['tag1', 'tag2']);
+  const [tags, setTags] = useState<string[] >([]);
   const [isError,setIsError] = useState({
     title:''
   })
-  
+  const userContext = useContext(UserContext)
+  const navigate = useNavigate()
 
   // to remove the error state from the content feild
   useEffect(()=>{
@@ -86,7 +87,7 @@ function Post() {
     date: getFormattedDate(),
     title,
     tags,
-    author: {name:await getUserName(),id:auth.currentUser?.uid},
+    author: {name:userContext.user.userName,id:auth.currentUser?.uid},
     content: document.querySelector('.tiptap')?.innerHTML,
     likes: [],
     comments: [
@@ -96,19 +97,23 @@ function Post() {
 await addDoc(collection(db, 'blogs'), post).then(() => {
   setTitle('');
   setTags([]);
+  navigate('/')
 })
 }
 
   }
 
 
-  
-  const getUserName = async () =>{
-    const uid =  auth?.currentUser?.uid
-    const products =  await getDoc(doc(collection(db, `users`),uid))
-    return products.data()?.name
+  const reset = () => {
+    setTags([]); 
+    const tiptapElement = document.querySelector('.tiptap') as HTMLElement;
+    if (tiptapElement) {
+      tiptapElement.innerHTML = '';
+    }
+    setTitle('');
+  };
 
-  }
+
 
 
 
@@ -123,7 +128,7 @@ await addDoc(collection(db, 'blogs'), post).then(() => {
     <Editor editor = {editor}/>
       <div className="flex flex-col gap-3 mt-3">
         <div className="flex flex-wrap gap-5">
-          {tags.map((tag, idx) => (
+          {tags?.map((tag:string, idx:number) => (
             <Badge
               key={idx}
               variant="outline"
@@ -145,8 +150,8 @@ await addDoc(collection(db, 'blogs'), post).then(() => {
           />
           <Button
             onClick={() => {
-              if (!tags.includes(tag) && tag !== '') {
-                setTags([...tags, tag]);
+              if (!tags?.includes(tag) && tag !== '') {
+                setTags([...tags , tag]);
                 setTag('');
               }
             }}
@@ -155,7 +160,9 @@ await addDoc(collection(db, 'blogs'), post).then(() => {
           </Button>
         </div>
         <div className="flex gap-3">
-          <Button className="mt-2 bg-destructive hover:bg-destructive/80" >Reset</Button>
+          <Button className="mt-2 bg-destructive hover:bg-destructive/80" 
+          onClick={reset}
+          >Reset</Button>
           <Button className="mt-2 flex-1" onClick={validate} >Post</Button>
         </div>
       </div>

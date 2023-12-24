@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { blogProps } from "./Blog";
 import { MessageCircle, ThumbsUp, MessagesSquare } from "lucide-react";
@@ -12,26 +12,22 @@ import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import parce from "html-react-parser";
 import {
-  collection,
   doc,
   getDoc,
   onSnapshot,
   updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "@/config/firebase";
+import { UserContext } from "@/App";
 
-export const getUserName = async () => {
-  const uid =  auth?.currentUser?.uid;
-  const userName = await getDoc(doc(collection(db, 'users'), uid as string));
-  return userName.data()?.name;
-};
+
 
 
 function BlogPage() {
   const params = useParams();
   const [comment, setComment] = useState("");
   const [current, setCurrent] = useState("");
-
+  const userContext = useContext(UserContext)
   //
   const [state, setState] = useState<any>(null);
   const blogId = params.blogId as string;
@@ -97,7 +93,7 @@ function BlogPage() {
             message: comment,
             user: {
               id: auth.currentUser?.uid,
-              name: await getUserName(),
+              name: userContext.user.userName,
             },
             replies: [],
           },
@@ -220,6 +216,7 @@ const CommentCard = ({
   state: blogProps;
 }) => {
   const [reply, setReply] = useState("");
+  const userContext = useContext(UserContext)
   const postReply = async (commentId: string) => {
     const commentIndex = state.comments.findIndex(
       (comment) => comment.id === commentId
@@ -230,7 +227,7 @@ const CommentCard = ({
         message: reply,
         user: {
           id: auth.currentUser?.uid as string,
-          name: (await getUserName()) as string,
+          name: userContext.user.userName,
         },
       };
 
@@ -286,7 +283,7 @@ const CommentCard = ({
         <h3 className="text-primary">@ {comment?.user?.name}</h3>
         <div className="flex justify-around gap-4">
           <button className="relative" onClick={() => likeComment(comment.id)}>
-            <ThumbsUp className="text-primary w-5" />
+            <ThumbsUp className={`text-primary w-5 ${comment.likes?.includes(auth.currentUser?.uid as string)&&'fill-primary'}`} />
             {comment.likes?.length != 0 && (
               <span className="absolute top-0 -right-1 text-[9px] bg-primary text-black rounded-full px-[4px] h-fit">
                 {comment.likes?.length}
