@@ -1,17 +1,13 @@
 import { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import bg from "/public/bg.jpg";
-import { auth, db } from "../config/firebase";
+import bg from "../assets/bg.jpg";
+import { auth } from "../config/firebase";
 import {
-  collection,
-  setDoc,
-  doc,
-} from "firebase/firestore";
-import {
-  createUserWithEmailAndPassword,
+  createUserWithEmailAndPassword, updateProfile,
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { EyeOff } from "lucide-react";
 
 
 function SignUp() {
@@ -20,6 +16,8 @@ function SignUp() {
   const [password, setPassword] = useState("");
   const [conf, setConf] = useState("");
   const [userName, setUserName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm,setShowConfirm] = useState(false);
   const [isError, setIsError] = useState({
     email: "",
     userName: "",
@@ -66,16 +64,15 @@ function SignUp() {
     } else {
       // If all fields are valid, proceed with signup
       try {
-        await createUserWithEmailAndPassword(auth, email, password).then(() => {
-          const neew = doc(collection(db, "users"), auth?.currentUser?.uid);
-          setDoc(neew, { name: userName }).then(() => {
-            setEmail("");
+        await createUserWithEmailAndPassword(auth, email, password)
+        await updateProfile(auth.currentUser!, {
+          displayName:userName
+         });
+        setEmail("");
             setPassword("");
             setUserName("");
             setConf("");
             navigate("/");
-          });
-        });
       } catch (err: any) {
         if (err.code == "auth/email-already-in-use") {
           setIsError((prevError) => {
@@ -111,7 +108,7 @@ function SignUp() {
                 Welcome
               </h2>
               <p className="text-muted-foreground text-xl mb-8">
-                Lets log you in quickly
+                Lets sign you up quickly
               </p>
             </div>
             <div className="mb-5">
@@ -149,11 +146,12 @@ function SignUp() {
               )}
             </div>
             <div></div>
-            <div className="mb-5">
+            <div className="mb-5 relative">
               <Input
                 className={`w-full ${isError.password && "border-destructive"}`}
                 placeholder="Enter password"
                 value={password}
+                type={showPassword ? "text" : "password"}
                 onChange={(e) => {
                   setIsError({ ...isError, password: "" });
                   setPassword(e.target.value);
@@ -164,14 +162,18 @@ function SignUp() {
                   {isError.password}
                 </p>
               )}
+              <Button className="absolute top-0 right-0 px-2" type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              ><EyeOff className="text-background"/></Button>
             </div>
-            <div className="mb-5">
+            <div className="mb-5 relative">
               <Input
                 className={`w-full ${
                   isError.confirmPassword && "border-destructive"
                 }`}
                 placeholder="Confirm password"
                 value={conf}
+                type={showConfirm ? "text" : "password"}
                 onChange={(e) => {
                   setIsError({ ...isError, confirmPassword: "" });
                   setConf(e.target.value);
@@ -182,10 +184,14 @@ function SignUp() {
                   {isError.confirmPassword}
                 </p>
               )}
+              <Button className="absolute top-0 right-0 px-2" type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              ><EyeOff className="text-background"/></Button>
             </div>
 
             <div>
-              <div className="flex justify-between flex-col md:flex-row"></div>
+              <div className="flex justify-between flex-col md:flex-row">
+
 
               <Button type="button" className="w-fit" onClick={signup}>
                 Submit
@@ -199,9 +205,10 @@ function SignUp() {
                   className="p-0 m-0 h-auto text-xs"
                   type="button"
                   onClick={() => navigate("/login")}
-                >
+                  >
                   Log-in
                 </Button>
+                  </div>
               </div>
             </div>
           </div>

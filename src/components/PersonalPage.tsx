@@ -34,9 +34,13 @@ function PersonalPage() {
           your posts
         </h2>
 
-        {blogs?.map((blog, index) => (
+        {blogs.length>0?blogs.map((blog, index) => (
           <Blog key={index} blog={blog} />
-        ))}
+        )):
+          <p className="text-center text-muted-foreground">
+            you have no posts yet.
+          </p>
+        }
       </main>
       <aside className="fixed bottom-5 left-[5vw] sm:left-[8vw] lg:left-0 lg:bottom-0 lg:relative w-[calc(90vw)]  sm:w-[calc(84vw)]    lg:w-[95px]  h-[67px] sm:h-[95px] lg:h-screen flex flex-row lg:flex-col items-center justify-between p-4 border-primary border-2 lg:border-0 !border-r-2 lg:py-14 bg-background ">
         <div className="w-full flex flex-row lg:flex-col items-center justify-between lg:justify-start lg:gap-10 h-full px-5 sm:px-10 ">

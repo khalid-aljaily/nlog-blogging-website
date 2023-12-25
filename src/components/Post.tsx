@@ -17,7 +17,6 @@ import TextAlign from '@tiptap/extension-text-align';
 import Superscript from '@tiptap/extension-superscript';
 import SubScript from '@tiptap/extension-subscript';
 import { Link } from '@mantine/tiptap';
-import { UserContext } from '@/App';
 function Post() {
   
   const editor = useEditor({
@@ -40,7 +39,7 @@ function Post() {
   const [isError,setIsError] = useState({
     title:''
   })
-  const userContext = useContext(UserContext)
+
   const navigate = useNavigate()
 
   // to remove the error state from the content feild
@@ -87,7 +86,7 @@ function Post() {
     date: getFormattedDate(),
     title,
     tags,
-    author: {name:userContext.user.userName,id:auth.currentUser?.uid},
+    author: {name:auth.currentUser?.displayName,id:auth.currentUser?.uid},
     content: document.querySelector('.tiptap')?.innerHTML,
     likes: [],
     comments: [
@@ -155,12 +154,13 @@ await addDoc(collection(db, 'blogs'), post).then(() => {
                 setTag('');
               }
             }}
+            className='text-background'
           >
             Add
           </Button>
         </div>
         <div className="flex gap-3">
-          <Button className="mt-2 bg-destructive hover:bg-destructive/80" 
+          <Button className="mt-2 bg-destructive hover:bg-destructive/80 text-background" 
           onClick={reset}
           >Reset</Button>
           <Button className="mt-2 flex-1" onClick={validate} >Post</Button>

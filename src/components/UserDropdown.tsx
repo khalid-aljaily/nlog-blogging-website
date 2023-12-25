@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,27 +29,33 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { auth, db } from "@/config/firebase";
-import { UserContext } from "@/App";
+import { auth } from "@/config/firebase";
 import { useNavigate } from "react-router-dom";
-import { collection, doc, setDoc } from "firebase/firestore";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import { EmailAuthProvider, User, reauthenticateWithCredential, updatePassword, updateProfile } from "firebase/auth";
 
 function UserDropdown() {
-  const userContext = useContext(UserContext);
+
   const [open, setOpen] = React.useState(false);
   const [open2, setOpen2] = React.useState(false);
   const navigate = useNavigate();
   const [newName, setNewName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [ConfirmPassword, setConfirmPassword] = useState("");
+  const [open3, setOpen3] = React.useState(false);
+  const [newPassword,setNewPassword] = useState("");
+  const [confirError,setConfirmError] = useState('');
+  const [newPasswordError,setNewPasswordError] = useState('');
+  const [dummy,setDummy]  = useState(true)
+
+
   const nameChange = async () => {
     if (auth.currentUser) {
-      await setDoc(doc(collection(db, "users"), auth.currentUser.uid), {
-        name: newName,
+      await updateProfile(auth.currentUser, {
+        displayName: newName,
       }).then(() => {
         setOpen2(!open2);
         setNewName("");
@@ -57,9 +63,9 @@ function UserDropdown() {
       });
     }
   };
-  console.log(userContext);
 
-  const deleteAccount = async () => {
+
+  const deleteAccount = async ()  => {
     if (password) {
       try {
         const Credential = EmailAuthProvider.credential(
@@ -68,8 +74,11 @@ function UserDropdown() {
         );
         await reauthenticateWithCredential(auth.currentUser as any, Credential);
         await reauthenticateWithCredential(auth.currentUser as any, Credential);
-        auth.currentUser?.delete();
-        setOpen(!open);
+        auth.currentUser?.delete().then(()=>{
+
+          setOpen(!open);
+        });
+        
       } catch (err) {
         if (err.code == "auth/invalid-credential") {
           setError("wrong password");
@@ -80,12 +89,40 @@ function UserDropdown() {
     }
   };
 
+  const passwordChange = async () => {
+    try {
+      const user = auth.currentUser;
+  
+      if (user) {
+        const credential = EmailAuthProvider.credential(user.email as string, ConfirmPassword);
+        await reauthenticateWithCredential(user, credential).then(() => {
+          if (newPassword.length > 6) {
+            updatePassword(user, newPassword).then(() => {
+              setOpen(!open3);
+              setConfirmPassword('');
+              setNewPassword('');
+            })
+          } else {
+            setNewPasswordError('Password must be at least 6 characters');
+          }
+        });
+          
+      }
+
+    } catch (error) {
+      if(error.code == 'auth/invalid-credential'){
+
+        setConfirmError('wrong password');
+      }
+    }
+  };
+
   return (
     <>
       {/* delete alert */}
       <AlertDialog open={open}>
         <AlertDialogContent
-          className="border-primary"
+          className="border-primary w-[90%] mx-auto"
           onEscapeKeyDown={() => setOpen(false)}
         >
           <AlertDialogHeader>
@@ -133,10 +170,10 @@ function UserDropdown() {
       </AlertDialog>
       {/* name change alert  */}
       <Dialog open={open2}>
-        <DialogContent className="border-primary !rounded-none">
+        <DialogContent className="border-primary !rounded-none w-[90%] mx-auto">
           <DialogClose
             className="absolute right-4 top-4 rounded-sm opacity-70 text-white ring-offset-background transition-opacity hover:opacity-100 focus:outline-none  disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-            onClick={() => setOpen2(!open2)}
+            onClick={() => {setOpen2(!open2);setNewName('')}}
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
@@ -157,16 +194,57 @@ function UserDropdown() {
         </DialogContent>
       </Dialog>
 
+      {/* password change alert  */}
+      <Dialog open={open3}>
+        <DialogContent className="border-primary !rounded-none w-[90%] mx-auto">
+          <DialogClose
+            className="absolute right-4 top-4 rounded-sm opacity-70 text-white ring-offset-background transition-opacity hover:opacity-100 focus:outline-none  disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            onClick={() => {setOpen3(!open3);setConfirmPassword('');setConfirmError('');setNewPassword('');setNewPasswordError('')}}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+          <DialogHeader>
+            <DialogTitle className="text-white">Passowrd change</DialogTitle>
+            <label htmlFor="newName" className="text-muted-foreground text-sm">
+              your current password
+            </label>
+            <div>
+            <Input
+              value={ConfirmPassword}
+              onChange={(e) => {setConfirmPassword(e.target.value);setConfirmError('')}}
+              id="newName"
+              className="my-2"
+            />
+            {confirError&&<p className="text-destructive text-xs mt-1">{confirError}</p>}
+            </div> 
+            <label htmlFor="newName" className="text-muted-foreground text-sm">
+              your new password
+            </label>
+            <div>
+            <Input
+              value={newPassword}
+              onChange={(e) => {setNewPassword(e.target.value);setNewPasswordError('')}}
+              id="newName"
+              className="my-2"
+            />
+            {newPasswordError&&<p className="text-destructive text-xs mt-1">{newPasswordError}</p>}
+            </div> 
+            <Button onClick={passwordChange}>Change</Button>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
       {/* userDropdown */}
       <DropdownMenu>
-        <DropdownMenuTrigger className="outline-none cursor-pointer bg-primary w-9  md:w-12 rounded-full text-2xl md:text-3xl h-9 md:h-12 flex items-center justify-center !text-background hover:bg-primary/80 active:translate-y-[1px] active:bg-primary/80 font-bold">
-          {userContext.user?.userName ? (
-            userContext.user?.userName.slice(0, 1).toUpperCase()
+        <DropdownMenuTrigger className="outline-none cursor-pointer bg-primary  rounded-full text-2xl md:text-3xl h-8 md:h-12 w-8  md:w-12 flex items-center justify-center !text-background hover:bg-primary/80 active:translate-y-[1px] active:bg-primary/80 font-bold">
+          {auth.currentUser?.displayName ? (
+            auth.currentUser?.displayName.slice(0, 1).toUpperCase()
           ) : (
             <CircleUser className="text-background p-0 flex-1 w-8 h-7 " />
           )}
         </DropdownMenuTrigger>
-        {userContext.user?.userName ? (
+        {auth.currentUser?.displayName? (
           <DropdownMenuContent className="rounded-none bg-background text-white ml-4 border-primary px-5">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-primary" />
@@ -181,10 +259,19 @@ function UserDropdown() {
             <DropdownMenuItem
               className="rounded-none cursor-pointer hover:!bg-primary hover:!text-background"
               onClick={() => {
+                setOpen3(!open3);
+              }}
+            >
+              Change password
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="rounded-none cursor-pointer hover:!bg-primary hover:!text-background"
+              onClick={() => {
                 {
-                  auth.signOut().then(() => {
-                    userContext.setUser({ user: null, userName: "" });
+                  auth.signOut().then(()=>{
+                    setDummy(!dummy)
                   });
+                  
                 }
               }}
             >

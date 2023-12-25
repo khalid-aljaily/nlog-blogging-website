@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect} from "react";
 import { useParams } from "react-router-dom";
 import { blogProps } from "./Blog";
-import { MessageCircle, ThumbsUp, MessagesSquare } from "lucide-react";
+import { MessageCircle, ThumbsUp, MessagesSquare, Trash2 } from "lucide-react";
 import { Badge } from "./ui/badge";
 import {
   Collapsible,
@@ -11,25 +11,18 @@ import {
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import parce from "html-react-parser";
-import {
-  doc,
-  getDoc,
-  onSnapshot,
-  updateDoc,
-} from "firebase/firestore";
+import { doc, getDoc, onSnapshot, updateDoc } from "firebase/firestore";
 import { auth, db } from "@/config/firebase";
-import { UserContext } from "@/App";
 
-
-
+import { LogInModal } from "./UserDropdown";
 
 function BlogPage() {
   const params = useParams();
   const [comment, setComment] = useState("");
   const [current, setCurrent] = useState("");
-  const userContext = useContext(UserContext)
-  //
-  const [state, setState] = useState<any>(null);
+
+  
+  const [state, setState] = useState<any>(null); //the actual blog
   const blogId = params.blogId as string;
 
   useEffect(() => {
@@ -53,13 +46,11 @@ function BlogPage() {
 
   //
   const like = async () => {
-    
     const likesToAdd = auth.currentUser?.uid;
     const blogDocRef = doc(db, "blogs", state.id);
     console.log(blogDocRef);
     try {
       const blogDocSnapshot = await getDoc(blogDocRef);
-
       if (blogDocSnapshot.exists()) {
         const blogData = blogDocSnapshot.data();
         const currentLikes = blogData.likes || [];
@@ -81,7 +72,7 @@ function BlogPage() {
       console.log("Error updating likes:", error);
     }
   };
-
+  //
   const AddComment = async () => {
     if (comment)
       await updateDoc(doc(db, "blogs", state.id), {
@@ -93,7 +84,7 @@ function BlogPage() {
             message: comment,
             user: {
               id: auth.currentUser?.uid,
-              name: userContext.user.userName,
+              name: auth.currentUser?.displayName,
             },
             replies: [],
           },
@@ -119,7 +110,7 @@ function BlogPage() {
         </div>
         <p>{parce(state.content)}</p>
         <div className="flex gap-5 flex-wrap mt-5">
-          {state.tags.map((tag:string, idx:number) => (
+          {state.tags.map((tag: string, idx: number) => (
             <Badge
               key={idx}
               variant={"outline"}
@@ -132,27 +123,51 @@ function BlogPage() {
         <div className="h-[1px] w-full bg-muted-foreground my-5" />
         <Collapsible>
           <div className="flex justify-around">
-            <button className={`relative bg-transparent p-0 `} onClick={like}>
-              <ThumbsUp
-                className={`text-primary  ${
-                  state.likes.includes(auth.currentUser?.uid as string) &&
-                  "fill-primary"
-                }`}
+            {auth.currentUser ? (
+              <button className={`relative bg-transparent p-0 `} onClick={like}>
+                <ThumbsUp
+                  className={`text-primary  ${
+                    state.likes.includes(auth.currentUser?.uid as string) &&
+                    "fill-primary"
+                  }`}
+                />
+                {state.likes.length != 0 && (
+                  <span
+                    className="absolute top-0 -right-1 text-[9px] bg-primary text-black rounded-full
+                    px-[4px] h-fit"
+                  >
+                    {state.likes.length}
+                  </span>
+                )}
+              </button>
+            ) : (
+              <LogInModal
+                trigger={
+                  <button className={`relative bg-transparent p-0 `}>
+                    <ThumbsUp
+                      className={`text-primary  ${
+                        state.likes.includes(auth.currentUser?.uid as string) &&
+                        "fill-primary"
+                      }`}
+                    />
+                    {state.likes.length != 0 && (
+                      <span
+                        className="absolute top-0 -right-1 text-[9px] bg-primary text-black rounded-full
+                        px-[4px] h-fit"
+                      >
+                        {state.likes.length}
+                      </span>
+                    )}
+                  </button>
+                }
               />
-              {state.likes.length != 0 && (
-                <span
-                  className="absolute top-0 -right-1 text-[9px] bg-primary text-black rounded-full
-        px-[4px] h-fit"
-                >
-                  {state.likes.length}
-                </span>
-              )}
-            </button>
+            )}
+
             <CollapsibleTrigger className="relative">
               <MessageCircle className="text-primary" />
               <span
                 className="absolute top-0 -right-1 text-[9px] bg-primary text-black rounded-full
-        px-[4px] h-fit"
+                px-[4px] h-fit"
               >
                 {state.comments.length}
               </span>
@@ -160,7 +175,7 @@ function BlogPage() {
           </div>
           <CollapsibleContent className="space-y-5">
             {state.comments &&
-              state.comments.map((comment:Comment) => (
+              state.comments.map((comment: Comment) => (
                 <CommentCard
                   state={state}
                   key={comment.id}
@@ -176,7 +191,11 @@ function BlogPage() {
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
               />
-              <Button onClick={AddComment}>Comment</Button>
+              {auth.currentUser ? (
+                <Button onClick={AddComment}>Comment</Button>
+              ) : (
+                <LogInModal trigger={<Button>Comment</Button>} />
+              )}
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -216,7 +235,8 @@ const CommentCard = ({
   state: blogProps;
 }) => {
   const [reply, setReply] = useState("");
-  const userContext = useContext(UserContext)
+
+  //
   const postReply = async (commentId: string) => {
     const commentIndex = state.comments.findIndex(
       (comment) => comment.id === commentId
@@ -227,7 +247,7 @@ const CommentCard = ({
         message: reply,
         user: {
           id: auth.currentUser?.uid as string,
-          name: userContext.user.userName,
+          name: auth.currentUser?.displayName,
         },
       };
 
@@ -245,10 +265,10 @@ const CommentCard = ({
         comments: updatedComments,
       });
 
-      console.log(updatedComments.find((comment) => comment.id === commentId));
     }
   };
 
+  //
   const likeComment = async (commentId: string) => {
     const commentIndex = state.comments.findIndex(
       (comment) => comment.id === commentId
@@ -274,22 +294,82 @@ const CommentCard = ({
         comments: updatedComments,
       });
 
-      console.log(updatedComments.find((comment) => comment.id === commentId));
     }
+  };
+  //
+  const deleteReply = async (id: number) => {
+    await updateDoc(doc(db, "blogs", state.id), {
+      comments: state.comments.map((comment) => {
+        if (comment.id === current) {
+          return {
+            ...comment,
+            replies: comment.replies?.filter((reply) => reply.id !== id),
+          };
+        }
+        return comment;
+      }),
+    });
+  };
+  //
+  const deleteComment = async (id: string) => {
+    await updateDoc(doc(db, "blogs", state.id), {
+      comments: state.comments.filter((comment) => comment.id !== id),
+    });
   };
   return (
     <Collapsible className="mt-3" open={current == comment.id}>
-      <div className="flex justify-between items-center">
-        <h3 className="text-primary">@ {comment?.user?.name}</h3>
+      <div className="flex justify-between items-center gap-3">
+        <div className="flex justify-between flex-1 items-center">
+          <h3 className="text-primary">@ {comment?.user?.name}</h3>
+          {comment.user.id == auth.currentUser?.uid && (
+            <Button
+              className="!bg-transparent p-0 mt-1"
+              onClick={() => {
+                deleteComment(comment.id);
+              }}
+            >
+              <Trash2 className="text-destructive h-5 w-5" />{" "}
+            </Button>
+          )}
+        </div>
         <div className="flex justify-around gap-4">
-          <button className="relative" onClick={() => likeComment(comment.id)}>
-            <ThumbsUp className={`text-primary w-5 ${comment.likes?.includes(auth.currentUser?.uid as string)&&'fill-primary'}`} />
-            {comment.likes?.length != 0 && (
-              <span className="absolute top-0 -right-1 text-[9px] bg-primary text-black rounded-full px-[4px] h-fit">
-                {comment.likes?.length}
-              </span>
-            )}
-          </button>
+          {auth.currentUser ? (
+            <button
+              className="relative"
+              onClick={() => likeComment(comment.id)}
+            >
+              <ThumbsUp
+                className={`text-primary w-5 ${
+                  comment.likes?.includes(auth.currentUser?.uid as string) &&
+                  "fill-primary"
+                }`}
+              />
+              {comment.likes?.length != 0 && (
+                <span className="absolute top-0 -right-1 text-[9px] bg-primary text-black rounded-full px-[4px] h-fit">
+                  {comment.likes?.length}
+                </span>
+              )}
+            </button>
+          ) : (
+            <LogInModal
+              trigger={
+                <button className="relative">
+                  <ThumbsUp
+                    className={`text-primary w-5 ${
+                      comment.likes?.includes(auth.currentUser?.uid) &&
+                      "fill-primary"
+                    }`}
+                  />
+                  {comment.likes?.length != 0 && (
+                    <span className="absolute top-0 -right-1 text-[9px] bg-primary text-black rounded-full px-[4px] h-fit">
+                      {comment.likes?.length}
+                    </span>
+                  )}
+                </button>
+              }
+            />
+          )}
+
           <CollapsibleTrigger>
             <MessagesSquare
               className="text-primary w-5"
@@ -306,9 +386,26 @@ const CommentCard = ({
           <div className="mt-3">
             {comment.replies &&
               comment.replies.map((reply, index) => (
-                <div key={index} className="ml-4">
-                  <h5 className="text-primary text-xs">@ {reply.user.name}</h5>
-                  <p className="text-[10px]">{reply.message}</p>
+                <div
+                  key={index}
+                  className="pl-2 ml-2  border-l border-x-muted-foreground flex justify-between items-start"
+                >
+                  <div>
+                    <h5 className="text-primary text-xs">
+                      @ {reply.user.name}
+                    </h5>
+                    <p className="text-[10px]">{reply.message}</p>
+                  </div>
+                  {reply.user.id == auth.currentUser?.uid && (
+                    <Button
+                      className="!bg-transparent p-0"
+                      onClick={() => {
+                        deleteReply(reply.id);
+                      }}
+                    >
+                      <Trash2 className="text-destructive h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               ))}
           </div>
@@ -323,13 +420,17 @@ const CommentCard = ({
                 setReply(e.target.value);
               }}
             />
-            <Button
-              onClick={() => {
-                postReply(comment.id);
-              }}
-            >
-              Reply
-            </Button>
+            {!auth.currentUser ? (
+              <LogInModal trigger={<Button>Reply</Button>} />
+            ) : (
+              <Button
+                onClick={() => {
+                  postReply(comment.id);
+                }}
+              >
+                Reply
+              </Button>
+            )}
           </div>
         )}
         <div className="h-[1px] w-full bg-muted-foreground/10 my-5" />

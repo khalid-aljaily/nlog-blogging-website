@@ -196,3 +196,55 @@ add:
 </g>
 </svg>
 }
+
+export const blog2 = {
+  id: '4',
+  date: {
+    dateNow: 1703101207362,
+    year: '2023',
+    day: '18',
+    month: 'December',
+  },
+  title: 'The Importance of a Balanced Diet',
+  tags: ['Health', 'Nutrition'],
+  author: 'Jane Smith',
+  content: `
+    <p>A balanced diet plays a crucial role in maintaining good health and well-being. It provides the body with essential nutrients, vitamins, and minerals needed for optimal functioning.</p>
+    
+    <p>Consuming a variety of foods from different food groups is key to achieving a balanced diet. These food groups include fruits, vegetables, grains, protein sources, and dairy or dairy alternatives.</p>
+    
+    <p>Fruits and vegetables are rich in vitamins, minerals, and antioxidants. They help boost the immune system, protect against chronic diseases, and promote healthy digestion.</p>
+    
+    <p>Grains, such as whole grains, provide energy and are a good source of fiber. They help regulate blood sugar levels, promote satiety, and support digestive health.</p>
+    
+    <p>Protein is essential for muscle growth and repair. It can be obtained from sources like lean meats, poultry, fish, legumes, and tofu. Including a variety of protein sources in the diet ensures the intake of essential amino acids.</p>
+    
+    <p>Dairy products or dairy alternatives, such as fortified plant-based milks, are important for calcium and vitamin D intake, which are essential for strong bones and teeth.</p>
+    
+    <p>It is also important to limit the intake of processed foods, sugary drinks, and foods high in saturated and trans fats. These foods can contribute to weight gain, increase the risk of chronic diseases, and negatively impact overall health.</p>
+    
+    <p>By following a balanced diet and making healthy food choices, individuals can maintain their weight, reduce the risk of diseases, and improve their overall well-being.</p>
+  `,
+  likes: ['user4', 'user5'],
+  comments: [
+    {
+      id: '3',
+      message: 'Great article! I learned a lot about the importance of a balanced diet.',
+      user: {
+        id: '5',
+        name: 'Michael',
+      },
+      likes: ['user6', 'user7'],
+      replies: [
+        {
+          id: '3',
+          message: "Thank you, Michael! I'm glad you found the article helpful.",
+          user: {
+            id: '6',
+            name: 'Jane',
+          },
+        },
+      ],
+    },
+  ],
+};
