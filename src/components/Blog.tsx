@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
 import parce from "html-react-parser";
 import { auth, db } from "@/config/firebase";
-import { collection, deleteDoc, doc } from "firebase/firestore";
+import { deleteDoc, doc } from "firebase/firestore";
 import { Trash2 } from "lucide-react";
 export type blogProps = {
   id: string;

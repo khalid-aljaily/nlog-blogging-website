@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import bg from "../assets/bg.jpg";
+import bg from "../assets/bg.webp";
 import { auth } from "../config/firebase";
-import {
-  createUserWithEmailAndPassword, updateProfile,
-} from "firebase/auth";
+import {createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import { EyeOff } from "lucide-react";
+import { BellRing, EyeOff } from "lucide-react";
+import { useToast } from "./ui/use-toast";
 
 
 function SignUp() {
@@ -18,6 +17,8 @@ function SignUp() {
   const [userName, setUserName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm,setShowConfirm] = useState(false);
+  const {toast} = useToast()
+
   const [isError, setIsError] = useState({
     email: "",
     userName: "",
@@ -67,6 +68,13 @@ function SignUp() {
         await createUserWithEmailAndPassword(auth, email, password)
         await updateProfile(auth.currentUser!, {
           displayName:userName
+         }).then(()=>{
+          toast({
+            description:'You can log-in now!',
+            title:'Success!',
+            className:'bg-primary border-none rounded-none text-background p-2 top-0',
+            action:<BellRing className="mr-3"/>,
+          });
          });
         setEmail("");
             setPassword("");

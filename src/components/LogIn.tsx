@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import bg from "../assets/bg.jpg";
-import { confirmPasswordReset, sendPasswordResetEmail, signInWithEmailAndPassword, validatePassword } from "firebase/auth";
+import bg from "../assets/bg.webp";
+import {  sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/config/firebase";
 import { useNavigate } from "react-router-dom";
-import { EyeOff, X } from "lucide-react";
+import { BellRing, EyeOff, X } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useToast } from "./ui/use-toast";
 function LogIn() {
@@ -15,6 +15,7 @@ function LogIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [open, setOpen] = useState(false);
   const [resetEmail,setResetEmail] = useState('')
+  const [resetEmailError,setResetEmailError] = useState('')
   const [error, setIsError] = useState({
     email: "",
     password: "",
@@ -61,15 +62,23 @@ function LogIn() {
   };
 
   const resetPassword = async () => {
-  sendPasswordResetEmail(auth,resetEmail).then(()=>{
-    toast({
-      description:'please check up your email to reset your password.',
-      title:'Email sent!',
-      className:'bg-primary border-none rounded-none text-background p-2 top-0',
-    });
-    setOpen(!open);
-    setResetEmail('');
-  })
+    
+      sendPasswordResetEmail(auth,resetEmail).then(()=>{
+        toast({
+          description:'please check up your email to reset your password.',
+          title:'Email sent!',
+          className:'bg-primary border-none rounded-none text-background p-2 top-0',
+          action:<BellRing className="mr-3"/>,
+        });
+        setOpen(!open);
+        setResetEmail('');
+      }).catch((error)=>{
+        const errorCode = error.code as string
+        setResetEmailError(errorCode.slice(5).replace('-',' '))
+      })
+    
+    
+  
   }
   
   return (
@@ -88,12 +97,16 @@ function LogIn() {
             <label htmlFor="newName" className="text-muted-foreground text-sm">
               please enter your email
             </label>
+            <div>
+
             <Input
               value={resetEmail}
               onChange={(e) => setResetEmail(e.target.value)}
               id="newName"
               className="my-2"
-            />
+              />
+              {resetEmailError&&<p className="text-xs text-destructive">{resetEmailError}</p>}
+              </div>
             <Button onClick={resetPassword} className="!mt-2" >send</Button>
           </DialogHeader>
         </DialogContent>

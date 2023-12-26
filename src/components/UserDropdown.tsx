@@ -34,7 +34,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { EmailAuthProvider, User, reauthenticateWithCredential, updatePassword, updateProfile } from "firebase/auth";
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, updateProfile } from "firebase/auth";
 
 function UserDropdown() {
 
@@ -79,7 +79,7 @@ function UserDropdown() {
           setOpen(!open);
         });
         
-      } catch (err) {
+      } catch (err:any) {
         if (err.code == "auth/invalid-credential") {
           setError("wrong password");
         }
@@ -109,9 +109,8 @@ function UserDropdown() {
           
       }
 
-    } catch (error) {
+    } catch (error:any) {
       if(error.code == 'auth/invalid-credential'){
-
         setConfirmError('wrong password');
       }
     }

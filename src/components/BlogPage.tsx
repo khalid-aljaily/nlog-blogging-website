@@ -44,6 +44,7 @@ function BlogPage() {
     };
   }, [blogId]);
 
+    
   //
   const like = async () => {
     const likesToAdd = auth.currentUser?.uid;
@@ -145,10 +146,7 @@ function BlogPage() {
                 trigger={
                   <button className={`relative bg-transparent p-0 `}>
                     <ThumbsUp
-                      className={`text-primary  ${
-                        state.likes.includes(auth.currentUser?.uid as string) &&
-                        "fill-primary"
-                      }`}
+                      className={`text-primary `}
                     />
                     {state.likes.length != 0 && (
                       <span
@@ -355,10 +353,7 @@ const CommentCard = ({
               trigger={
                 <button className="relative">
                   <ThumbsUp
-                    className={`text-primary w-5 ${
-                      comment.likes?.includes(auth.currentUser?.uid) &&
-                      "fill-primary"
-                    }`}
+                    className={`text-primary w-5`}
                   />
                   {comment.likes?.length != 0 && (
                     <span className="absolute top-0 -right-1 text-[9px] bg-primary text-black rounded-full px-[4px] h-fit">

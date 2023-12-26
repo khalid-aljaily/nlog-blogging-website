@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {  useLocation, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { Button } from './ui/button';
@@ -6,7 +6,7 @@ import { Input } from './ui/input';
 import { Badge } from './ui/badge';
 import Editor from './Editor'
 import 'draft-js/dist/Draft.css';
-import { addDoc, collection, doc, getDoc } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
 import { auth, db } from '@/config/firebase';
 
 import { useEditor } from '@tiptap/react';
