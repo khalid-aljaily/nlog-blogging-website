@@ -24,7 +24,6 @@ function Blogs() {
         updatedBlogs = updatedBlogs.sort(
           (a, b) => (b.likes.length || 0) - (a.likes.length || 0)
         );
-        console.log(location.pathname);
       }
 
       setBlogs(updatedBlogs);

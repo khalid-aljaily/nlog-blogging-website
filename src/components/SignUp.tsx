@@ -25,7 +25,6 @@ function SignUp() {
     password: "",
     confirmPassword: "",
   });
-  console.log(auth);
   const signup = async () => {
     if (email === "") {
       setIsError((prevError) => ({

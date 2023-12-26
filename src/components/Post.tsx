@@ -92,7 +92,6 @@ function Post() {
     comments: [
     ],
   }
-  console.log(post)
 await addDoc(collection(db, 'blogs'), post).then(() => {
   setTitle('');
   setTags([]);

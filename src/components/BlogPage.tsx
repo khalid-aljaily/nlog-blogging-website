@@ -31,7 +31,6 @@ function BlogPage() {
       if (snapshot.exists()) {
         const updatedBlog = { ...snapshot.data(), id: snapshot.id };
         setState(updatedBlog);
-        console.log(updatedBlog);
       } else {
         // Handle the case when the blog doesn't exist
         console.log("Blog not found");
@@ -49,7 +48,6 @@ function BlogPage() {
   const like = async () => {
     const likesToAdd = auth.currentUser?.uid;
     const blogDocRef = doc(db, "blogs", state.id);
-    console.log(blogDocRef);
     try {
       const blogDocSnapshot = await getDoc(blogDocRef);
       if (blogDocSnapshot.exists()) {
@@ -64,10 +62,7 @@ function BlogPage() {
           });
         } else {
           await updateDoc(blogDocRef, { likes: updatedLikes });
-          console.log(`Likes updated for document with ID: ${state.id}`);
         }
-      } else {
-        console.log(`Blog document with ID ${state.id} does not exist.`);
       }
     } catch (error) {
       console.log("Error updating likes:", error);

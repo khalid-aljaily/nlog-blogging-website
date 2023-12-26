@@ -44,7 +44,6 @@ function Blogs() {
       console.error("Error fetching blogs:", error);
     }
   };
-  console.log(blogs);
 
   return (
     <div className="flex flex-col lg:flex-row-reverse ">
