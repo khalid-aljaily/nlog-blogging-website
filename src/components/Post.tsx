@@ -81,7 +81,7 @@ function Post() {
    if(editor?.getText().length==0){
    document.querySelector('.tiptap')?.classList.add('!border-destructive') 
    }
-  else {
+  else if(editor?.getText().length!==0&&title!==''){
      const post =   {
     date: getFormattedDate(),
     title,
